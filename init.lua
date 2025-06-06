@@ -413,27 +413,36 @@ require("lazy").setup({
 		end,
 	},
 
-    {
-        "catppuccin/nvim", name = "catppuccin", priority = 1000,
-        config = function()
-            require("catppuccin").setup({
-                flavour = "frappe",
-                -- transparent_background = true,
-                styles = {
-                    comments = {"italic"},
-                    integrations = {
-                        cmp = true,
-                        gitsigns = true,
-                        treesitter = true,
-                        notify = false,
-                        mini = {
-                            enabled = true,
-                            indentscope_color = "",
-                        },
-                    },
-                }
-            })
-            vim.cmd.colorscheme("catppuccin")
+  {
+    "catppuccin/nvim", name = "catppuccin", priority = 1000,
+    config = function()
+      require("catppuccin").setup({
+        custom_highlights = function(colors) -- for ghostty
+          return {
+            Normal = { bg = "#282C34" },     -- your desired background color
+            NormalNC = { bg = "#282C34" },   -- background when not focused
+            -- Optional: change Float, Pmenu, etc. if needed
+            -- FloatBorder = { bg = "#1e1e2e", fg = colors.mauve },
+            -- Pmenu = { bg = "#1e1e2e" },
+          }
+        end,
+        flavour = "frappe",
+        -- transparent_background = true,
+        styles = {
+          comments = {"italic"},
+          integrations = {
+            cmp = true,
+            gitsigns = true,
+            treesitter = true,
+            notify = false,
+            mini = {
+              enabled = true,
+              indentscope_color = "",
+            },
+          },
+        }
+      })
+      vim.cmd.colorscheme("catppuccin")
 
         end,
     },
