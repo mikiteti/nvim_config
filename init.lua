@@ -209,8 +209,8 @@ require("lazy").setup({
         dependencies = {
             -- Automatically install LSPs and related tools to stdpath for Neovim
             -- Mason must be loaded before its dependents so we need to set it up here.
-            { "williamboman/mason.nvim", opts = {} },
-            {"williamboman/mason-lspconfig.nvim", opts = {ensure_installed = { "html", "cssls", "tsserver" }}},
+            { "williamboman/mason.nvim", build = ":MasonUpdate", config = true },
+            {"williamboman/mason-lspconfig.nvim"},
             "WhoIsSethDaniel/mason-tool-installer.nvim",
 
             -- Useful status updates for LSP.
@@ -231,29 +231,21 @@ require("lazy").setup({
                     -- Jump to the definition of the word under your cursor.
                     --  To jump back, press <C-t>.
                     map("gd", require("telescope.builtin").lsp_definitions, "[G]oto [D]efinition")
-
                     -- Find references for the word under your cursor.
                     map("gr", require("telescope.builtin").lsp_references, "[G]oto [R]eferences")
-
                     -- Jump to the implementation of the word under your cursor.
                     map("gI", require("telescope.builtin").lsp_implementations, "[G]oto [I]mplementation")
-
                     -- Jump to the type of the word under your cursor.
                     map("<leader>D", require("telescope.builtin").lsp_type_definitions, "Type [D]efinition")
-
                     -- Fuzzy find all the symbols in your current document.
                     map("<leader>ds", require("telescope.builtin").lsp_document_symbols, "[D]ocument [S]ymbols")
-
                     -- Fuzzy find all the symbols in your current workspace.
                     map("<leader>ws", require("telescope.builtin").lsp_dynamic_workspace_symbols, "[W]orkspace [S]ymbols")
-
                     -- Rename the variable under your cursor.
                     map("<leader>rn", vim.lsp.buf.rename, "[R]e[n]ame")
-
                     -- Execute a code action, usually your cursor needs to be on top of an error
                     -- or a suggestion from your LSP for this to activate.
                     map("<leader>ca", vim.lsp.buf.code_action, "[C]ode [A]ction", { "n", "x" })
-
                     map("gD", vim.lsp.buf.declaration, "[G]oto [D]eclaration")
 
                     -- This function resolves a difference between neovim nightly (version 0.11) and stable (version 0.10)
@@ -356,10 +348,10 @@ require("lazy").setup({
             vim.list_extend(ensure_installed, {
                 "stylua", -- Used to format Lua code
             })
-            require("mason-tool-installer").setup({ ensure_installed = ensure_installed })
+            -- require("mason-tool-installer").setup({ ensure_installed = ensure_installed })
 
             -- This function augments the default LSP `on_attach` to ensure 4-space indentation
-            local lsp_on_attach = function(client, bufnr)
+            local on_attach = function(client, bufnr)
                 -- Set local buffer options
                 vim.bo[bufnr].tabstop = 4
                 vim.bo[bufnr].shiftwidth = 4
@@ -375,33 +367,71 @@ require("lazy").setup({
                 end
             end
 
-            require("mason-lspconfig").setup({
-                ensure_installed = {}, -- explicitly set to an empty table (Kickstart populates installs via mason-tool-installer)
-                automatic_installation = false,
-                handlers = {
-                    function(server_name)
-                        -- local server = servers[server_name] or {}
-                        -- server.capabilities = vim.tbl_deep_extend("force", {}, capabilities, server.capabilities or {})
-                        -- require("lspconfig")[server_name].setup(server)
-                        require('lspconfig')[server_name].setup {
-                            on_attach = lsp_on_attach,
-                            settings = {
-                                -- This helps with servers like tsserver, jsonls, etc.
-                                editor = {
-                                    tabSize = 4,
-                                    insertSpaces = true,
-                                },
-                            },
-                        }
-                    end,
-                },
+            local lspconfig = require("lspconfig")
+            local mason_lspconfig = require("mason-lspconfig")
+            mason_lspconfig.setup({
+              ensure_installed = {
+                "html",
+                "cssls",
+                "ts_ls",     -- or "tsserver" if you prefer
+                "emmet_ls",
+              }, -- explicitly set to an empty table (Kickstart populates installs via mason-tool-installer)
+              automatic_installation = true,
+              handlers = {
+                function(server_name)
+                  require('lspconfig')[server_name].setup {
+                    on_attach = on_attach,
+                    capabilities = capabilities,
+                    settings = {
+                      -- This helps with servers like tsserver, jsonls, etc.
+                      editor = {
+                        tabSize = 4,
+                        insertSpaces = true,
+                      },
+                    },
+                  }
+                end,
+
+                ["html"] = function()
+                  lspconfig.html.setup({
+                    on_attach = on_attach,
+                    capabilities = capabilities,
+                    filetypes = { "html" },
+                  })
+                end,
+
+                ["cssls"] = function()
+                  lspconfig.cssls.setup({
+                    on_attach = on_attach,
+                    capabilities = capabilities,
+                    filetypes = { "css", "scss", "less", "html" }, -- enable inside HTML
+                  })
+                end,
+
+                ["ts_ls"] = function()
+                  lspconfig.ts_ls.setup({
+                    on_attach = on_attach,
+                    capabilities = capabilities,
+                    filetypes = { "javascript", "typescript", "html" }, -- enable inside HTML
+                  })
+                end,
+
+                ["emmet_ls"] = function()
+                  lspconfig.emmet_ls.setup({
+                    on_attach = on_attach,
+                    capabilities = capabilities,
+                    filetypes = { "html", "css", "javascriptreact", "typescriptreact" },
+                  })
+                end,
+              } 
             })
 
             -- Apply to all servers (this assumes you're using `mason-lspconfig`)
-            -- require('mason-lspconfig').setup_handlers {
+            -- mason_lspconfig.setup_handlers({
             --   function(server_name)
             --     require('lspconfig')[server_name].setup {
-            --       on_attach = lsp_on_attach,
+            --       on_attach = on_attach,
+            --       capabilities = capabilities,
             --       settings = {
             --         -- This helps with servers like tsserver, jsonls, etc.
             --         editor = {
@@ -411,7 +441,39 @@ require("lazy").setup({
             --       },
             --     }
             --   end,
-            -- }
+            --
+            --   ["html"] = function()
+            --     lspconfig.html.setup({
+            --       on_attach = on_attach,
+            --       capabilities = capabilities,
+            --       filetypes = { "html" },
+            --     })
+            --   end,
+            --
+            --   ["cssls"] = function()
+            --     lspconfig.cssls.setup({
+            --       on_attach = on_attach,
+            --       capabilities = capabilities,
+            --       filetypes = { "css", "scss", "less", "html" }, -- enable inside HTML
+            --     })
+            --   end,
+            --
+            --   ["ts_ls"] = function()
+            --     lspconfig.ts_ls.setup({
+            --       on_attach = on_attach,
+            --       capabilities = capabilities,
+            --       filetypes = { "javascript", "typescript", "html" }, -- enable inside HTML
+            --     })
+            --   end,
+            --
+            --   ["emmet_ls"] = function()
+            --     lspconfig.emmet_ls.setup({
+            --       on_attach = on_attach,
+            --       capabilities = capabilities,
+            --       filetypes = { "html", "css", "javascriptreact", "typescriptreact" },
+            --     })
+            --   end,
+            -- })
         end,
     },
 
