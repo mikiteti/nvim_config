@@ -65,27 +65,29 @@ vim.opt.foldmethod = "indent"
 vim.opt.foldlevelstart = 99
 
 vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
+vim.keymap.set("v", "/", "\"vy/<C-R>v<CR>")
 
 -- Diagnostic keymaps
 vim.keymap.set("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostic [Q]uickfix list" })
 
 -- Keybinds to make split navigation easier.
-vim.keymap.set("n", "<A-h>", "<C-w><C-h>", { desc = "Move focus to the left window" })
-vim.keymap.set("n", "<A-l>", "<C-w><C-l>", { desc = "Move focus to the right window" })
-vim.keymap.set("n", "<A-j>", "<C-w><C-j>", { desc = "Move focus to the lower window" })
-vim.keymap.set("n", "<A-k>", "<C-w><C-k>", { desc = "Move focus to the upper window" })
+-- vim.keymap.set("n", "<A-h>", "<C-w><C-h>", { desc = "Move focus to the left window" })
+-- vim.keymap.set("n", "<A-l>", "<C-w><C-l>", { desc = "Move focus to the right window" })
+-- vim.keymap.set("n", "<A-j>", "<C-w><C-j>", { desc = "Move focus to the lower window" })
+-- vim.keymap.set("n", "<A-k>", "<C-w><C-k>", { desc = "Move focus to the upper window" })
 
 -- vim.keymap.set("n", "n", "nzzzv") -- leave cursor in the middle of the screen when jumping between found texts
 -- vim.keymap.set("n", "N", "Nzzzv")
 
-vim.keymap.set("n", "<leader>pv", "<CMD>lua MiniFiles.open()<CR>", { desc = "Open parent directory" })
+vim.keymap.set("n", "<leader>e", "<CMD>lua MiniFiles.open()<CR>", { desc = "Open parent directory" })
 
 -- vim.keymap.set("n", "<leader>d", "<cmd>lua ToggleVirtualText()<CR>") -- show/hide diagnostics -- currently not working for some reason...
 
 vim.keymap.set("n", "<leader>y", '"+y') -- yank to clipboard
 vim.keymap.set("v", "<leader>y", '"+y')
 vim.keymap.set("n", "<leader>y", '"+Y')
-
+vim.keymap.set("n", "<leader>p", '"+p')
+vim.keymap.set("v", "<leader>p", '"+p')
 
 vim.keymap.set("v", ">", ">gv") -- give me my selection back after tabbing
 vim.keymap.set("v", "<", "<gv")
@@ -94,7 +96,6 @@ vim.keymap.set("n", ">", ">>") -- indent in normal mode if a say so
 vim.keymap.set("n", "<", "<<")
 
 vim.keymap.set("n", "J", "J_") -- leave me on the beginning when joinin
-vim.keymap.set("n", "J", "J_")
 
 vim.keymap.set("n", "<leader>t", "<CMD>lua require('FTerm').open()<CR>")
 vim.keymap.set("t", "<Esc>", "<C-\\><C-n><CMD>lua require('FTerm').toggle()<CR>")
@@ -170,12 +171,12 @@ require("lazy").setup({
 
             local builtin = require("telescope.builtin")
 
-            vim.keymap.set("n", "<leader>pf", builtin.find_files, { desc = "Telescope find files" })
-            vim.keymap.set("n", "<leader>ps", function()
+            vim.keymap.set("n", "<leader>f", builtin.find_files, { desc = "Telescope find files" })
+            vim.keymap.set("n", "<leader>s", function()
                 builtin.grep_string({ search = vim.fn.input("Grep > ") })
             end)
-            vim.keymap.set("n", "<leader>pb", builtin.buffers, { desc = "Telescope find buffers" })
-            vim.keymap.set('n', '<leader>pw', builtin.grep_string, { desc = '[S]earch current [W]ord' })
+            vim.keymap.set("n", "<leader>b", builtin.buffers, { desc = "Telescope find buffers" })
+            vim.keymap.set('n', '<leader>w', builtin.grep_string, { desc = '[S]earch current [W]ord' })
             -- vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
             -- vim.keymap.set('n', '<leader>sk', builtin.keymaps, { desc = '[S]earch [K]eymaps' })
             -- vim.keymap.set('n', '<leader>sf', builtin.find_files, { desc = '[S]earch [F]iles' })
@@ -209,7 +210,7 @@ require("lazy").setup({
             -- Automatically install LSPs and related tools to stdpath for Neovim
             -- Mason must be loaded before its dependents so we need to set it up here.
             { "williamboman/mason.nvim", opts = {} },
-            "williamboman/mason-lspconfig.nvim",
+            {"williamboman/mason-lspconfig.nvim", opts = {ensure_installed = { "html", "cssls", "tsserver" }}},
             "WhoIsSethDaniel/mason-tool-installer.nvim",
 
             -- Useful status updates for LSP.
